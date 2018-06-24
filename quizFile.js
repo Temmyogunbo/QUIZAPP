@@ -47,7 +47,6 @@ module.exports = (subject) => {
         this.questions = fileLibrary.loadQuiz(this.subject);
         this.time = this.questions['time'];
         this.quizMode = true;
-        console.log(this.time)
         console.log(chalk.yellow('Starting quiz'));
         console.log(chalk.yellow('\t\tQuiz mode activated'));
         console.log(chalk.magenta('\t\tYou have got ' + this.time + ' minutes to answer all the questions'));

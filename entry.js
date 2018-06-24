@@ -75,59 +75,74 @@ const runCommands = (commands, r1) => {
   };
 };
 
-r1.on("line", (line) => {
-  if (quiz.quizMode) {
-    const answers = ['A', 'B', 'C', 'D'];
-    let answer = line.trim();
-    answer = answer.toUpperCase();
+const scoreUser = (quiz, answer) => {
+  if (quiz.quizAnswer === answer) {
+    User.setUserQuizScore(1)
+  };
+}
 
-    if (quiz.questionNumber === 5) {
-      quiz.endQuiz();
-      r1.setPrompt('quizit>> ');
-      r1.prompt();
-    }
-    else {
-      if (answers.includes(answer)) {
-        if (quiz.quizAnswer === answer) {
-          User.setUserQuizScore(1)
-        };
-        quiz.loadNextQuestion();
-        r1.setPrompt("Answer>> ");
-        r1.prompt();
-      }
-      else if (answer === "QUIT") {
-        console.log(chalk.yellow("\tYou ended the quiz."));
-        quiz.endQuiz();
-        r1.setPrompt('quizit>> ');
-        r1.prompt();
-      }
-      else {
-        console.log(chalk.red("You entered a wrong command. \nEither type A or B or C or or D. You can also type quit to end the quiz"));
-        r1.prompt();
-      }
-    }
+const checkQuizNumber = (quiz) => {
+  if (quiz.questionNumber === 5) {
+    quiz.endQuiz();
+    r1.setPrompt('quizit>> ');
+    r1.prompt();
+    return;
+  };
+};
+
+const checkLength = (arg) => {
+  if (arg.length > 3) {
+    console.log(chalk.red(" Unrecognized command.") + " \nTypet 'help' for more information. ");
+    r1.prompt();
+    return;
+  };
+};
+
+const quitQuiz = (quit) => {
+  if (quit === "QUIT") {
+    console.log(chalk.yellow("\tYou ended the quiz."));
+    quiz.endQuiz();
+    r1.setPrompt('quizit>> ');
+    r1.prompt();
   }
   else {
-    const arguments = line.trim();
-    if (arguments.length === 0) {
+    console.log(chalk.red("You entered a wrong command. \nEither type A or B or C or or D. You can also type quit to end the quiz"));
+    r1.prompt();
+  }
+};
+
+r1.on("line", (line) => {
+  line = line.trim();
+  if (quiz.quizMode) {
+    const answers = ['A', 'B', 'C', 'D'];
+    let answer = line;
+    answer = answer.toUpperCase();
+
+    checkQuizNumber(quiz)
+
+    if (answers.includes(answer)) {
+      scoreUser(quiz, answer);
+      quiz.loadNextQuestion();
+      r1.setPrompt("Answer>> ");
       r1.prompt();
-    }
-    else {
-      const arg = arguments.split(" ")
-      if (arg.length > 3) {
-        console.log(chalk.red(" Unrecognized command.") + " \nTypet 'help' for more information. ");
-        r1.prompt();
-      }
-      else {
+      return;
+    };
+    quitQuiz(answer)
+  }
+  else {
+    return line.length === 0
+      ? r1.prompt()
+      : (() => {
+        const arg = line.split(" ")
+        checkLength(arg);
+
         try {
           runCommands(arg, r1);
         }
         catch (err) {
-          console.log(err)
           console.log(chalk.red("Unrecognized command") + "\nTypea 'help' for more information.")
           r1.prompt();
         }
-      }
-    }
+      })();
   }
 });
